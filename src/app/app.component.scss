@@ -1,0 +1,35 @@
+.app-toolbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+}
+
+.app-title {
+  font-size: 1.2rem;
+  font-weight: 500;
+  margin-right: 16px;
+}
+
+.toolbar-spacer {
+  flex: 1 1 auto;
+}
+
+.app-content {
+  margin-top: 64px; /* Height of the toolbar */
+  padding: 20px;
+  min-height: calc(100vh - 64px);
+}
+
+.active-link {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Responsive adjustments */
+@media (max-width: 599px) {
+  .app-content {
+    margin-top: 56px; /* Height of the toolbar on mobile */
+    min-height: calc(100vh - 56px);
+  }
+}
