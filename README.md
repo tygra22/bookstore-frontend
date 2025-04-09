@@ -20,7 +20,20 @@ This project was generated using [Angular CLI](https://github.com/angular/angula
 
 ## Development server
 
-To start a local development server, run:
+### Quick Setup (Recommended)
+
+We've created a convenient setup script that will automatically:
+1. Use the correct Node.js version with nvm
+2. Install dependencies if needed
+3. Start the Angular development server
+
+```bash
+npm run setup
+```
+
+### Manual Setup
+
+To start a local development server manually, run:
 
 ```bash
 ng serve
