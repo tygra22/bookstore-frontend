@@ -14,9 +14,15 @@ export class UserService {
   ) { }
 
   /**
-   * Get all users (admin only)
+   * Get all users (admin only) with optional filtering and sorting
    */
-  getUsers(params?: { page?: number; limit?: number }): Observable<{users: User[], pagination: any}> {
+  getUsers(params?: { 
+    page?: number; 
+    limit?: number; 
+    search?: string;
+    sort?: string;
+    order?: string;
+  }): Observable<{users: User[], pagination: any}> {
     let httpParams = new HttpParams();
     
     if (params) {
@@ -45,5 +51,26 @@ export class UserService {
    */
   getUserById(id: string): Observable<User> {
     return this.http.get<User>(this.apiService.getUrl(`users/${id}`));
+  }
+
+  /**
+   * Update user admin status (admin only)
+   */
+  updateUserAdminStatus(userId: string, isAdmin: boolean): Observable<User> {
+    // The AuthInterceptor will automatically add the JWT token
+    return this.http.patch<User>(
+      this.apiService.getUrl(`users/${userId}/admin-status`),
+      { isAdmin }
+    );
+  }
+
+  /**
+   * Delete a user by ID (admin only)
+   */
+  deleteUser(userId: string): Observable<{message: string}> {
+    // The AuthInterceptor will automatically add the JWT token
+    return this.http.delete<{message: string}>(
+      this.apiService.getUrl(`users/${userId}`)
+    );
   }
 }

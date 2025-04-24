@@ -4,6 +4,8 @@ export interface User {
   email: string;
   password?: string;
   address?: string;
+  city?: string;
+  zipCode?: string;
   phone?: string;
   isAdmin?: boolean;
   token?: string;
@@ -15,6 +17,10 @@ export interface AuthResponse {
   _id: string;
   name: string;
   email: string;
+  address?: string;
+  city?: string;
+  zipCode?: string;
+  phone?: string;
   isAdmin: boolean;
   token: string;
 }
@@ -29,5 +35,7 @@ export interface RegisterData {
   email: string;
   password: string;
   address?: string;
+  city?: string;
+  zipCode?: string;
   phone?: string;
 }

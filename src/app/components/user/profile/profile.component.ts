@@ -109,6 +109,8 @@ export class ProfileComponent implements OnInit {
       name: ['', [Validators.required, Validators.minLength(3)]],
       email: ['', [Validators.required, Validators.email]],
       address: [''],
+      city: [''],
+      zipCode: ['', [Validators.pattern(/^[0-9]{5}(-[0-9]{4})?$/)]],
       phone: ['', [Validators.pattern(/^[0-9]{10,15}$/)]]
     });
 
@@ -149,6 +151,8 @@ export class ProfileComponent implements OnInit {
       name: user.name,
       email: user.email,
       address: user.address || '',
+      city: user.city || '',
+      zipCode: user.zipCode || '',
       phone: user.phone || ''
     });
   }

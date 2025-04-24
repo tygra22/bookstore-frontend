@@ -45,6 +45,24 @@
                 </mat-form-field>
               </div>
 
+              <div class="address-details">
+                <div class="form-field city-field">
+                  <mat-form-field appearance="outline">
+                    <mat-label>City</mat-label>
+                    <input matInput formControlName="city" placeholder="Enter your city">
+                  </mat-form-field>
+                </div>
+
+                <div class="form-field zip-field">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Zip Code</mat-label>
+                    <input matInput formControlName="zipCode" placeholder="Enter your zip code">
+                    <mat-hint align="start">Format: 12345 or 12345-6789</mat-hint>
+                    <mat-error *ngIf="profileForm.get('zipCode')?.invalid">{{ getErrorMessage('zipCode') }}</mat-error>
+                  </mat-form-field>
+                </div>
+              </div>
+
               <div class="form-field">
                 <mat-form-field appearance="outline">
                   <mat-label>Phone Number</mat-label>

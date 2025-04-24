@@ -114,14 +114,18 @@ export class CheckoutComponent implements OnInit {
         this.user = user;
         // Prefill shipping form with user details
         if (user) {
+          // Use address parsing for backward compatibility with existing addresses
           const addressParts = this.parseAddress(user.address || '');
+          
           this.shippingForm.patchValue({
             name: user.name,
             addressLine1: addressParts.addressLine1,
             addressLine2: addressParts.addressLine2,
-            city: addressParts.city,
-            postalCode: addressParts.postalCode || '',
-            country: addressParts.country || 'USA',
+            // Use the city field directly if available, otherwise use parsed address
+            city: user.city || addressParts.city || '',
+            // Use the zipCode field directly if available, otherwise use parsed postal code
+            postalCode: user.zipCode || addressParts.postalCode || '',
+            country: 'USA',
             phone: user.phone || ''
           });
         }
