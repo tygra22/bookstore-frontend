@@ -52,14 +52,24 @@ export interface OrderResponse {
 }
 
 export interface OrderStats {
-  statistics: {
+  totalOrders: number;
+  totalRevenue: number;
+  paidOrders: number;
+  unpaidOrders: number;
+  deliveredOrders: number;
+  completedOrders: number;
+  // processingOrders field is optional for our class project since all orders are immediately completed
+  processingOrders?: number;
+  
+  // Original nested structure kept for backwards compatibility
+  statistics?: {
     totalOrders: number;
     paidOrders: number;
     deliveredOrders: number;
     processingOrders: number;
     revenue: number;
   };
-  monthlyTrend: {
+  monthlyTrend?: {
     _id: {
       year: number;
       month: number;
@@ -77,5 +87,5 @@ export interface OrderSearchParams {
   search?: string;
   startDate?: string;
   endDate?: string;
-  status?: 'paid' | 'unpaid' | 'delivered' | 'processing';
+  status?: 'paid' | 'unpaid' | 'delivered' | 'processing' | 'completed' | 'pending';
 }

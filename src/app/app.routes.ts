@@ -8,6 +8,8 @@ import { CartPageComponent } from './components/cart/cart-page/cart-page.compone
 import { BookManagerComponent } from './components/books/book-manager/book-manager.component';
 import { ProfileComponent } from './components/user/profile/profile.component';
 import { CheckoutComponent } from './components/checkout/checkout.component';
+import { AdminOrdersComponent } from './components/admin/admin-orders/admin-orders.component';
+import { AdminDashboardComponent } from './components/admin/admin-dashboard/admin-dashboard.component';
 import { AuthGuard } from './services/auth.guard';
 import { AdminGuard } from './services/admin.guard';
 
@@ -24,10 +26,11 @@ export const routes: Routes = [
         path: 'admin', 
         canActivate: [AuthGuard, AdminGuard],
         children: [
-            { path: '', redirectTo: 'books', pathMatch: 'full' },
+            { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+            { path: 'dashboard', component: AdminDashboardComponent },
             { path: 'books', component: BookManagerComponent },
+            { path: 'orders', component: AdminOrdersComponent },
             // Future admin routes can be added here
-            // { path: 'orders', component: OrderManagerComponent },
             // { path: 'users', component: UserManagerComponent },
         ]
     },

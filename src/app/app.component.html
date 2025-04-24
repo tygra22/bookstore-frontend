@@ -26,7 +26,7 @@
     <ng-container *ngIf="isAdmin">
       <button mat-button [matMenuTriggerFor]="adminMenu">Admin</button>
       <mat-menu #adminMenu="matMenu">
-        <button mat-menu-item [routerLink]="['/admin']">
+        <button mat-menu-item [routerLink]="['/admin/dashboard']">
           <mat-icon>dashboard</mat-icon>
           <span>Dashboard</span>
         </button>

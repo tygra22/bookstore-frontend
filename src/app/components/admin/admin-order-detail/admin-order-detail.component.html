@@ -1,0 +1,148 @@
+<h2 mat-dialog-title>Order Details</h2>
+
+<mat-dialog-content>
+  <!-- Loading state -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="40"></mat-spinner>
+    <span>Loading order details...</span>
+  </div>
+
+  <!-- Error state -->
+  <div *ngIf="error && !loading" class="error-message">
+    <mat-icon>error</mat-icon>
+    <span>{{ error }}</span>
+  </div>
+
+  <!-- Order details -->
+  <div *ngIf="order && !loading" class="order-details">
+    <!-- Order summary section -->
+    <div class="order-summary">
+      <div class="order-header">
+        <div class="order-id">
+          <div class="label">Order ID</div>
+          <div class="value">{{ order._id }}</div>
+        </div>
+        <div class="order-status">
+          <span class="status-badge" [ngClass]="getOrderStatusClass()">
+            {{ getOrderStatusText() }}
+          </span>
+        </div>
+      </div>
+
+      <div class="order-info-grid">
+        <div class="info-item">
+          <div class="label">Date Placed</div>
+          <div class="value">{{ formatDate(order.createdAt) }}</div>
+        </div>
+        
+        <div class="info-item">
+          <div class="label">Payment Date</div>
+          <div class="value">{{ formatDate(order.paidAt) }}</div>
+        </div>
+        
+        <div class="info-item">
+          <div class="label">Completion Date</div>
+          <div class="value">{{ formatDate(order.deliveredAt) }}</div>
+        </div>
+        
+        <div class="info-item">
+          <div class="label">Payment Method</div>
+          <div class="value">{{ order.paymentMethod }}</div>
+        </div>
+        
+        <div class="info-item">
+          <div class="label">Payment ID</div>
+          <div class="value">{{ order.paymentResult?.id || 'N/A' }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Customer information -->
+    <div class="customer-section">
+      <h3>Customer Information</h3>
+      <div class="customer-info">
+        <div class="info-item">
+          <div class="label">Name</div>
+          <div class="value">{{ getUserName(order.user) }}</div>
+        </div>
+        
+        <div class="info-item">
+          <div class="label">Email</div>
+          <div class="value">{{ getUserEmail(order.user) }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Shipping information -->
+    <div class="shipping-section">
+      <h3>Shipping Information</h3>
+      <div class="shipping-info">
+        <div class="info-item full-width">
+          <div class="label">Address</div>
+          <div class="value">{{ order.shippingAddress.address }}</div>
+        </div>
+        
+        <div class="info-item">
+          <div class="label">City</div>
+          <div class="value">{{ order.shippingAddress.city }}</div>
+        </div>
+        
+        <div class="info-item">
+          <div class="label">Postal Code</div>
+          <div class="value">{{ order.shippingAddress.postalCode }}</div>
+        </div>
+        
+        <div class="info-item">
+          <div class="label">Country</div>
+          <div class="value">{{ order.shippingAddress.country }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order items -->
+    <div class="order-items-section">
+      <h3>Order Items</h3>
+      <div class="order-items">
+        <div *ngFor="let item of order.orderItems" class="order-item">
+          <div class="item-image">
+            <img [src]="getBookImage(item)" [alt]="getBookTitle(item)">
+          </div>
+          <div class="item-details">
+            <div class="item-title">{{ getBookTitle(item) }}</div>
+            <div class="item-author">by {{ getBookAuthor(item) }}</div>
+          </div>
+          <div class="item-price">{{ formatCurrency(item.price) }}</div>
+          <div class="item-quantity">× {{ item.quantity }}</div>
+          <div class="item-total">{{ formatCurrency(item.price * item.quantity) }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order total -->
+    <div class="order-totals-section">
+      <div class="totals-table">
+        <div class="total-row">
+          <div>Subtotal</div>
+          <div>{{ formatCurrency(order.itemsPrice) }}</div>
+        </div>
+        <div class="total-row">
+          <div>Shipping</div>
+          <div>{{ formatCurrency(order.shippingPrice) }}</div>
+        </div>
+        <div class="total-row">
+          <div>Tax</div>
+          <div>{{ formatCurrency(order.taxPrice) }}</div>
+        </div>
+        <mat-divider></mat-divider>
+        <div class="total-row grand-total">
+          <div>Total</div>
+          <div>{{ formatCurrency(order.totalPrice) }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="close()">Close</button>
+</mat-dialog-actions>

@@ -286,11 +286,6 @@ export class CheckoutComponent implements OnInit {
     // Base shipping cost
     let shipping = 5.00;
 
-    // Add $1 for each additional item
-    if (items.length > 1) {
-      shipping += (items.length - 1) * 1;
-    }
-
     return Number(shipping.toFixed(2));
   }
 

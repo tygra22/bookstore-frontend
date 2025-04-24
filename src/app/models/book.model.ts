@@ -14,3 +14,15 @@ export interface Book {
   createdAt?: Date;
   updatedAt?: Date;
 }
+
+export interface BookSearchParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  genre?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  sort?: string;
+  order?: 'asc' | 'desc';
+  lowStock?: boolean; // Added for dashboard to find low stock books
+}
