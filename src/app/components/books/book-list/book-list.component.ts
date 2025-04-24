@@ -1,17 +1,20 @@
-import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
+import { RouterLink } from '@angular/router';
+import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
 
 import { Book } from '../../../models/book.model';
-import { BookService } from '../../../services/book.service';
+import { BookResponse, BookSearchParams, BookService } from '../../../services/book.service';
 
 @Component({
   selector: 'app-book-list',
@@ -26,21 +29,56 @@ import { BookService } from '../../../services/book.service';
     MatInputModule,
     MatFormFieldModule,
     MatSelectModule,
-    FormsModule
+    MatPaginatorModule,
+    FormsModule,
+    MatCheckboxModule
   ],
   templateUrl: './book-list.component.html',
   styleUrls: ['./book-list.component.scss']
 })
 export class BookListComponent implements OnInit {
   books: Book[] = [];
-  filteredBooks: Book[] = [];
   loading = false;
   error = '';
-  searchQuery = '';
-  selectedCategory = '';
-  categories: string[] = [];
 
-  constructor(private bookService: BookService) { }
+  // Search parameters
+  searchQuery: string = '';
+  selectedGenre: string = '';
+  maxPrice: number | null = null;
+  inStockOnly: boolean = false;
+
+  // Pagination
+  totalBooks = 0;
+  currentPage = 1;
+  pageSize = 10;
+  pageSizeOptions = [5, 10, 20, 50];
+
+  // Genres list (formerly categories)
+  genres: string[] = [];
+
+  // Search debounce subjects
+  private searchDebounce: Subject<string> = new Subject<string>();
+  private priceDebounce: Subject<number | null> = new Subject<number | null>();
+
+  constructor(private bookService: BookService) {
+    // Setup search debounce
+    this.searchDebounce.pipe(
+      debounceTime(300)
+    ).subscribe(query => {
+      this.searchQuery = query;
+      this.currentPage = 1; // Reset to first page on new search
+      this.loadBooks();
+    });
+    
+    // Setup price debounce
+    this.priceDebounce.pipe(
+      debounceTime(1000) // 1 second debounce
+    ).subscribe(price => {
+      this.maxPrice = price;
+      this.currentPage = 1; // Reset to first page on price change
+      this.loadBooks();
+    });
+  }
 
   ngOnInit(): void {
     this.loadBooks();
@@ -48,12 +86,25 @@ export class BookListComponent implements OnInit {
 
   loadBooks(): void {
     this.loading = true;
-    this.bookService.getBooks()
+
+    // Build search parameters
+    const params: BookSearchParams = {
+      page: this.currentPage,
+      limit: this.pageSize
+    };
+
+    // Add optional search filters
+    if (this.searchQuery) params.search = this.searchQuery;
+    if (this.selectedGenre) params.genre = this.selectedGenre;
+    if (this.maxPrice) params.maxPrice = this.maxPrice;
+    if (this.inStockOnly) params.inStock = true;
+
+    this.bookService.getBooks(params)
       .subscribe({
-        next: (books) => {
-          this.books = books;
-          this.filteredBooks = books;
-          this.extractCategories();
+        next: (response: BookResponse) => {
+          this.books = response.books;
+          this.totalBooks = response.pagination.total;
+          this.extractGenres();
           this.loading = false;
         },
         error: (error) => {
@@ -64,42 +115,71 @@ export class BookListComponent implements OnInit {
       });
   }
 
-  extractCategories(): void {
-    const categorySet = new Set<string>();
+  /**
+   * Extract unique genres from the loaded books
+   * This is a client-side extraction, but ideally we would have an API endpoint 
+   * that returns all available genres
+   */
+  extractGenres(): void {
+    const genreSet = new Set<string>();
     this.books.forEach(book => {
-      if (book.category) {
-        categorySet.add(book.category);
+      if (book.genre) {
+        genreSet.add(book.genre);
       }
     });
-    this.categories = Array.from(categorySet).sort();
+    this.genres = Array.from(genreSet).sort();
   }
 
-  searchBooks(): void {
-    if (!this.searchQuery && !this.selectedCategory) {
-      this.filteredBooks = this.books;
-      return;
-    }
-
-    this.filteredBooks = this.books.filter(book => {
-      const matchesSearch = !this.searchQuery || 
-        book.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        book.author.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-        book.description.toLowerCase().includes(this.searchQuery.toLowerCase());
-      
-      const matchesCategory = !this.selectedCategory || book.category === this.selectedCategory;
-      
-      return matchesSearch && matchesCategory;
-    });
+  /**
+   * Handle pagination events
+   */
+  onPageChange(event: PageEvent): void {
+    this.pageSize = event.pageSize;
+    this.currentPage = event.pageIndex + 1; // PageEvent is 0-based, our API is 1-based
+    this.loadBooks();
   }
 
+  /**
+   * Trigger a search with debounce
+   */
+  updateSearch(term: string): void {
+    this.searchDebounce.next(term);
+  }
+
+  /**
+   * Update max price with debounce
+   */
+  updateMaxPrice(price: number | null): void {
+    this.priceDebounce.next(price);
+  }
+
+  /**
+   * Apply genre filter
+   */
+  filterByGenre(genre: string): void {
+    this.selectedGenre = genre;
+    this.currentPage = 1; // Reset to first page
+    this.loadBooks();
+  }
+
+  /**
+   * Toggle in-stock filter
+   */
+  toggleInStock(): void {
+    this.inStockOnly = !this.inStockOnly;
+    this.currentPage = 1; // Reset to first page
+    this.loadBooks();
+  }
+
+  /**
+   * Clear all filters and reload books
+   */
   clearFilters(): void {
     this.searchQuery = '';
-    this.selectedCategory = '';
-    this.filteredBooks = this.books;
-  }
-
-  filterByCategory(category: string): void {
-    this.selectedCategory = category;
-    this.searchBooks();
+    this.selectedGenre = '';
+    this.maxPrice = null;
+    this.inStockOnly = false;
+    this.currentPage = 1;
+    this.loadBooks();
   }
 }

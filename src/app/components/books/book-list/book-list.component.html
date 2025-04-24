@@ -1,66 +1,151 @@
 <div class="book-list-container">
   <div class="book-list-header">
-    <h1>Book Collection</h1>
-    
-    <div class="filters">
-      <mat-form-field appearance="outline" class="search-field">
-        <mat-label>Search books</mat-label>
-        <input matInput [(ngModel)]="searchQuery" (keyup)="searchBooks()" placeholder="Search by title, author, or description">
-        <button *ngIf="searchQuery" matSuffix mat-icon-button aria-label="Clear" (click)="searchQuery=''; searchBooks()">
-          <mat-icon>close</mat-icon>
-        </button>
-      </mat-form-field>
-      
-      <mat-form-field appearance="outline" class="category-field">
-        <mat-label>Category</mat-label>
-        <mat-select [(ngModel)]="selectedCategory" (selectionChange)="searchBooks()">
-          <mat-option value="">All Categories</mat-option>
-          <mat-option *ngFor="let category of categories" [value]="category">
-            {{category}}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-      
-      <button mat-raised-button color="accent" (click)="clearFilters()" [disabled]="!searchQuery && !selectedCategory">
+    <div class="title-row">
+      <h1>Book Collection</h1>
+      <button
+        mat-raised-button
+        color="accent"
+        (click)="clearFilters()"
+        [disabled]="
+          !searchQuery &&
+          !selectedGenre &&
+          !maxPrice &&
+          !inStockOnly
+        ">
         Clear Filters
       </button>
     </div>
+
+    <div class="filters">
+      <!-- Search field with debounce -->
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Search books</mat-label>
+        <input
+          matInput
+          [(ngModel)]="searchQuery"
+          (keyup)="updateSearch(searchQuery)"
+          placeholder="Search by title, author, or description"
+        />
+        <button
+          *ngIf="searchQuery"
+          matSuffix
+          mat-icon-button
+          aria-label="Clear"
+          (click)="searchQuery = ''; updateSearch('')"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      </mat-form-field>
+
+      <!-- Genre filter (formerly category) -->
+      <mat-form-field appearance="outline" class="genre-field">
+        <mat-label>Genre</mat-label>
+        <mat-select
+          [(ngModel)]="selectedGenre"
+          (selectionChange)="filterByGenre(selectedGenre)"
+        >
+          <mat-option value="">All Genres</mat-option>
+          <mat-option *ngFor="let genre of genres" [value]="genre">
+            {{ genre }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Price filter -->
+      <mat-form-field appearance="outline" class="price-field">
+        <mat-label>Max Price</mat-label>
+        <input 
+          matInput 
+          type="number" 
+          [(ngModel)]="maxPrice" 
+          (ngModelChange)="updateMaxPrice($event)" 
+          min="0" 
+        />
+        <button
+          *ngIf="maxPrice"
+          matSuffix
+          mat-icon-button
+          aria-label="Clear"
+          (click)="maxPrice = null; updateMaxPrice(null)"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      </mat-form-field>
+
+    </div>
   </div>
-  
+
   <div *ngIf="loading" class="loading-container">
     <mat-spinner diameter="50"></mat-spinner>
   </div>
-  
+
   <div *ngIf="error" class="error-message">
     {{ error }}
   </div>
-  
+
   <div *ngIf="!loading && !error" class="book-grid">
-    <mat-card *ngFor="let book of filteredBooks" class="book-card">
-      <img mat-card-image [src]="book.coverImage || 'assets/images/book-placeholder.jpg'" alt="{{ book.title }}" class="book-cover">
-      
+    <mat-card *ngFor="let book of books" class="book-card">
+      <img
+        mat-card-image
+        [src]="book.imageUrl || 'assets/images/book-placeholder.jpg'"
+        alt="{{ book.title }}"
+        class="book-cover"
+      />
+
       <mat-card-content>
         <h2 class="book-title">{{ book.title }}</h2>
         <p class="book-author">by {{ book.author }}</p>
         <p class="book-price">${{ book.price.toFixed(2) }}</p>
-        <p class="book-category" (click)="filterByCategory(book.category)">
-          <span class="category-tag">{{ book.category }}</span>
+        <p
+          class="book-stock"
+          [ngClass]="{
+            'in-stock': book.quantity > 0,
+            'out-of-stock': book.quantity === 0
+          }"
+        >
+          {{ book.quantity > 0 ? book.quantity + " in stock" : "Out of stock" }}
         </p>
-        <p class="book-description">{{ book.description | slice:0:150 }}{{ book.description.length > 150 ? '...' : '' }}</p>
+        <p class="book-genre" (click)="filterByGenre(book.genre)">
+          <span class="genre-tag">{{ book.genre }}</span>
+        </p>
+        <p class="book-description" *ngIf="book.description">
+          {{ book.description | slice : 0 : 150
+          }}{{ book.description.length > 150 ? "..." : "" }}
+        </p>
       </mat-card-content>
-      
+
       <mat-card-actions>
-        <button mat-button color="primary" [routerLink]="['/books', book._id]">View Details</button>
-        <button mat-raised-button color="primary">
+        <button mat-button color="primary" [routerLink]="['/books', book._id]">
+          View Details
+        </button>
+        <button
+          mat-raised-button
+          color="primary"
+          [disabled]="book.quantity === 0"
+        >
           <mat-icon>add_shopping_cart</mat-icon> Add to Cart
         </button>
       </mat-card-actions>
     </mat-card>
   </div>
-  
-  <div *ngIf="!loading && !error && filteredBooks.length === 0" class="no-books">
+
+  <!-- Pagination control -->
+  <mat-paginator
+    *ngIf="!loading && !error && totalBooks > 0"
+    [length]="totalBooks"
+    [pageSize]="pageSize"
+    [pageSizeOptions]="pageSizeOptions"
+    [pageIndex]="currentPage - 1"
+    (page)="onPageChange($event)"
+    aria-label="Select page"
+  >
+  </mat-paginator>
+
+  <div *ngIf="!loading && !error && books.length === 0" class="no-books">
     <mat-icon>sentiment_dissatisfied</mat-icon>
     <p>No books found matching your criteria.</p>
-    <button mat-raised-button color="primary" (click)="clearFilters()">Clear Filters</button>
+    <button mat-raised-button color="primary" (click)="clearFilters()">
+      Clear Filters
+    </button>
   </div>
 </div>

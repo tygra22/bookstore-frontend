@@ -1,12 +1,13 @@
-import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
+import { Component, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
+import { RouterLink } from '@angular/router';
 
-import { AuthService } from '../../services/auth.service';
 import { User } from '../../models/user.model';
+import { AuthService } from '../../services/auth.service';
+import { BookListComponent } from '../books/book-list/book-list.component';
 
 @Component({
   selector: 'app-home',
@@ -16,7 +17,8 @@ import { User } from '../../models/user.model';
     RouterLink,
     MatCardModule,
     MatButtonModule,
-    MatIconModule
+    MatIconModule,
+    BookListComponent
   ],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss']
