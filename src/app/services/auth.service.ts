@@ -4,16 +4,20 @@ import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { User, AuthResponse, LoginCredentials, RegisterData } from '../models/user.model';
 import { Router } from '@angular/router';
+import { ApiService } from './api.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:5000/api/users';
   private currentUserSubject: BehaviorSubject<User | null>;
   public currentUser: Observable<User | null>;
   
-  constructor(private http: HttpClient, private router: Router) {
+  constructor(
+    private http: HttpClient, 
+    private router: Router,
+    private apiService: ApiService
+  ) {
     // Initialize from localStorage if available
     const storedUser = localStorage.getItem('currentUser');
     this.currentUserSubject = new BehaviorSubject<User | null>(
@@ -27,7 +31,7 @@ export class AuthService {
   }
   
   login(credentials: LoginCredentials): Observable<User> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials)
+    return this.http.post<AuthResponse>(this.apiService.getUsersUrl('login'), credentials)
       .pipe(
         map(response => {
           // Store user details and jwt token in local storage to keep user logged in
@@ -49,7 +53,7 @@ export class AuthService {
   }
   
   register(userData: RegisterData): Observable<User> {
-    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, userData)
+    return this.http.post<AuthResponse>(this.apiService.getUsersUrl('register'), userData)
       .pipe(
         map(response => {
           // Store user details and jwt token in local storage to keep user logged in
@@ -78,7 +82,7 @@ export class AuthService {
   }
   
   getProfile(): Observable<User> {
-    return this.http.get<User>(`${this.apiUrl}/profile`)
+    return this.http.get<User>(this.apiService.getUsersUrl('profile'))
       .pipe(
         catchError(error => {
           return throwError(() => error);
@@ -87,7 +91,7 @@ export class AuthService {
   }
   
   updateProfile(userData: Partial<User>): Observable<User> {
-    return this.http.put<AuthResponse>(`${this.apiUrl}/profile`, userData)
+    return this.http.put<AuthResponse>(this.apiService.getUsersUrl('profile'), userData)
       .pipe(
         map(response => {
           // Update stored user
