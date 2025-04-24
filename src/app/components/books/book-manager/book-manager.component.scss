@@ -1,0 +1,170 @@
+.book-manager-container {
+  padding: 24px;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.book-manager-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  
+  h1 {
+    margin: 0;
+    color: #1976d2; // Primary color
+    font-size: 2rem;
+  }
+  
+  .add-book-button {
+    mat-icon {
+      margin-right: 8px;
+    }
+  }
+}
+
+.filter-card {
+  margin-bottom: 24px;
+  
+  .filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    
+    mat-form-field {
+      flex: 1 1 200px;
+    }
+    
+    .search-field {
+      flex: 2 1 300px;
+    }
+    
+    .stock-filter {
+      flex: 1 1 150px;
+      display: flex;
+      align-items: center;
+      height: 56px;
+    }
+    
+    .filter-actions {
+      display: flex;
+      gap: 8px;
+      flex: 1 1 200px;
+      justify-content: flex-end;
+    }
+  }
+}
+
+.book-table-container {
+  width: 100%;
+  overflow-x: auto;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  
+  table {
+    width: 100%;
+    
+    .book-cover {
+      width: 50px;
+      height: 75px;
+      object-fit: cover;
+      border-radius: 4px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .title-cell {
+      min-width: 200px;
+      
+      .book-title {
+        font-weight: 500;
+        margin-bottom: 4px;
+      }
+      
+      .book-isbn {
+        font-size: 0.8rem;
+        color: #666;
+      }
+    }
+    
+    .action-cell {
+      width: 120px;
+      white-space: nowrap;
+    }
+    
+    .out-of-stock {
+      color: #f44336; // Red color for out of stock
+      font-weight: 500;
+    }
+  }
+}
+
+.loading-indicator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 48px 0;
+}
+
+.error-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  color: #f44336;
+  background-color: rgba(244, 67, 54, 0.1);
+  border-radius: 4px;
+  margin-bottom: 24px;
+  
+  mat-icon {
+    margin-right: 8px;
+  }
+  
+  button {
+    margin-left: 16px;
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 0;
+  text-align: center;
+  
+  mat-icon {
+    font-size: 64px;
+    height: 64px;
+    width: 64px;
+    color: #9e9e9e;
+    margin-bottom: 16px;
+  }
+  
+  h2 {
+    margin-bottom: 8px;
+    color: #333;
+  }
+  
+  p {
+    margin-bottom: 24px;
+    color: #666;
+    max-width: 400px;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .book-manager-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .filter-form {
+    .filter-actions {
+      justify-content: flex-start;
+    }
+  }
+}

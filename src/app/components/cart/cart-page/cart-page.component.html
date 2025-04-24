@@ -1,0 +1,147 @@
+<div class="cart-container">
+  <div class="cart-header">
+    <h1>Shopping Cart</h1>
+    <div class="cart-actions" *ngIf="cart && cart.items.length > 0">
+      <button mat-raised-button color="warn" (click)="clearCart()">
+        <mat-icon>remove_shopping_cart</mat-icon> Clear Cart
+      </button>
+    </div>
+  </div>
+
+  <!-- Empty cart state -->
+  <div class="empty-cart" *ngIf="!cart || cart.items.length === 0">
+    <mat-icon>shopping_cart</mat-icon>
+    <h2>Your cart is empty</h2>
+    <p>Looks like you haven't added any books to your cart yet.</p>
+    <button mat-raised-button color="primary" routerLink="/books">
+      <mat-icon>menu_book</mat-icon> Browse Books
+    </button>
+  </div>
+
+  <!-- Cart items -->
+  <div class="cart-content" *ngIf="cart && cart.items.length > 0">
+    <!-- Cart summary -->
+    <mat-card class="cart-summary">
+      <mat-card-header>
+        <mat-card-title>Order Summary</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="summary-row">
+          <span>Subtotal ({{ cart.totalItems }} items):</span>
+          <span>{{ cart.totalPrice | currency }}</span>
+        </div>
+        <div class="summary-row">
+          <span>Shipping:</span>
+          <span>Free</span>
+        </div>
+        <mat-divider></mat-divider>
+        <div class="summary-row total">
+          <span>Total:</span>
+          <span>{{ cart.totalPrice | currency }}</span>
+        </div>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-button routerLink="/books">
+          <mat-icon>arrow_back</mat-icon> Continue Shopping
+        </button>
+        <button
+          mat-raised-button
+          color="primary"
+          class="checkout-button"
+          (click)="checkout()"
+        >
+          <mat-icon>payment</mat-icon> Proceed to Checkout
+        </button>
+      </mat-card-actions>
+    </mat-card>
+
+    <!-- Cart items table -->
+    <table mat-table [dataSource]="cart.items" class="cart-table">
+      <!-- Image Column -->
+      <ng-container matColumnDef="image">
+        <th mat-header-cell *matHeaderCellDef>Cover</th>
+        <td mat-cell *matCellDef="let item">
+          <img
+            [src]="item.book.imageUrl || 'assets/images/book-placeholder.jpg'"
+            [alt]="item.book.title"
+            class="book-cover"
+          />
+        </td>
+      </ng-container>
+
+      <!-- Title Column -->
+      <ng-container matColumnDef="title">
+        <th mat-header-cell *matHeaderCellDef>Book</th>
+        <td mat-cell *matCellDef="let item" class="book-info">
+          <div class="book-title">{{ item.book.title }}</div>
+          <div class="book-author">by {{ item.book.author }}</div>
+          <div class="book-genre">{{ item.book.genre }}</div>
+        </td>
+      </ng-container>
+
+      <!-- Price Column -->
+      <ng-container matColumnDef="price">
+        <th mat-header-cell *matHeaderCellDef>Price</th>
+        <td mat-cell *matCellDef="let item">
+          {{ item.book.price | currency }}
+        </td>
+      </ng-container>
+
+      <!-- Quantity Column -->
+      <ng-container matColumnDef="quantity">
+        <th mat-header-cell *matHeaderCellDef>Quantity</th>
+        <td mat-cell *matCellDef="let item" class="quantity-cell">
+          <div class="quantity-controls">
+            <button
+              mat-icon-button
+              color="primary"
+              (click)="decreaseQuantity(item)"
+              [disabled]="item.quantity <= 1"
+            >
+              <mat-icon>remove</mat-icon>
+            </button>
+            <span
+              style="
+                min-width: 30px;
+                display: inline-block;
+                text-align: center;
+                font-size: 20px;
+                font-weight: 400;
+              "
+              >{{ item.quantity }}</span
+            >
+            <button
+              mat-icon-button
+              color="primary"
+              (click)="increaseQuantity(item)"
+              [disabled]="item.quantity >= item.book.quantity"
+            >
+              <mat-icon>add</mat-icon>
+            </button>
+          </div>
+        </td>
+      </ng-container>
+
+      <!-- Total Column -->
+      <ng-container matColumnDef="total">
+        <th mat-header-cell *matHeaderCellDef>Total</th>
+        <td mat-cell *matCellDef="let item">
+          {{ item.book.price * item.quantity | currency }}
+        </td>
+      </ng-container>
+
+      <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef></th>
+        <td mat-cell *matCellDef="let item">
+          <button mat-icon-button color="warn" (click)="removeFromCart(item)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+  </div>
+</div>

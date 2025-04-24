@@ -1,0 +1,111 @@
+<h2 mat-dialog-title>{{ formTitle }}</h2>
+
+<form [formGroup]="bookForm" (ngSubmit)="onSubmit()">
+  <mat-dialog-content>
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Book Title</mat-label>
+        <input matInput formControlName="title" placeholder="Enter book title">
+        <mat-error *ngIf="bookForm.get('title')?.invalid">{{ getErrorMessage('title') }}</mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Author</mat-label>
+        <input matInput formControlName="author" placeholder="Enter author name">
+        <mat-error *ngIf="bookForm.get('author')?.invalid">{{ getErrorMessage('author') }}</mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row two-column">
+      <mat-form-field appearance="outline">
+        <mat-label>ISBN</mat-label>
+        <input matInput formControlName="isbn" placeholder="10 or 13 digit ISBN">
+        <mat-hint>e.g. 978-3-16-148410-0</mat-hint>
+        <mat-error *ngIf="bookForm.get('isbn')?.invalid">{{ getErrorMessage('isbn') }}</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Genre</mat-label>
+        <mat-select formControlName="genre">
+          <mat-option *ngFor="let genre of commonGenres" [value]="genre">
+            {{ genre }}
+          </mat-option>
+          <mat-option value="other">Other</mat-option>
+        </mat-select>
+        <mat-error *ngIf="bookForm.get('genre')?.invalid">{{ getErrorMessage('genre') }}</mat-error>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row two-column">
+      <mat-form-field appearance="outline">
+        <mat-label>Price</mat-label>
+        <input matInput type="number" formControlName="price" placeholder="0.00" min="0" step="0.01">
+        <span matPrefix>$&nbsp;</span>
+        <mat-error *ngIf="bookForm.get('price')?.invalid">{{ getErrorMessage('price') }}</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Quantity in Stock</mat-label>
+        <input matInput type="number" formControlName="quantity" placeholder="0" min="0" step="1">
+        <mat-error *ngIf="bookForm.get('quantity')?.invalid">{{ getErrorMessage('quantity') }}</mat-error>
+      </mat-form-field>
+    </div>
+
+    <mat-divider class="section-divider"></mat-divider>
+    <h3 class="section-title">Additional Details</h3>
+
+    <div class="form-row two-column">
+      <mat-form-field appearance="outline">
+        <mat-label>Publisher</mat-label>
+        <input matInput formControlName="publisher" placeholder="Enter publisher">
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Publish Date</mat-label>
+        <input matInput [matDatepicker]="picker" formControlName="publishDate">
+        <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Image URL</mat-label>
+        <input matInput formControlName="imageUrl" placeholder="Enter image URL">
+        <mat-hint>URL to book cover image</mat-hint>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Description</mat-label>
+        <textarea 
+          matInput 
+          formControlName="description" 
+          placeholder="Enter book description"
+          rows="4"
+        ></textarea>
+      </mat-form-field>
+    </div>
+
+    <div class="form-row">
+      <mat-slide-toggle formControlName="isUpcoming" color="primary">
+        Mark as Upcoming Book
+      </mat-slide-toggle>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="onCancel()">Cancel</button>
+    <button 
+      mat-raised-button 
+      color="primary" 
+      type="submit" 
+      [disabled]="bookForm.invalid"
+    >
+      {{ submitButtonText }}
+    </button>
+  </mat-dialog-actions>
+</form>

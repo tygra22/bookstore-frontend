@@ -1,0 +1,82 @@
+<div class="book-details-container">
+  <!-- Loading state -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+  </div>
+
+  <!-- Error state -->
+  <div *ngIf="error" class="error-message">
+    <mat-icon>error</mat-icon>
+    <p>{{ error }}</p>
+    <button mat-raised-button color="primary" (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon> Back to Books
+    </button>
+  </div>
+
+  <!-- Book details -->
+  <div *ngIf="!loading && !error && book" class="book-content">
+    <div class="navigation-bar">
+      <button mat-button color="primary" (click)="goBack()">
+        <mat-icon>arrow_back</mat-icon> Back to Books
+      </button>
+    </div>
+
+    <div class="book-layout">
+      <!-- Book cover and quick actions -->
+      <div class="book-image-section">
+        <img 
+          [src]="book.imageUrl || 'assets/images/book-placeholder.jpg'" 
+          [alt]="book.title" 
+          class="book-cover"
+        >
+        <div class="book-actions">
+          <button 
+            mat-raised-button 
+            color="primary" 
+            [disabled]="book.quantity === 0"
+            (click)="addToCart()"
+          >
+            <mat-icon>add_shopping_cart</mat-icon>
+            {{ book.quantity > 0 ? 'Add to Cart' : 'Out of Stock' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Book details -->
+      <div class="book-info-section">
+        <h1 class="book-title">{{ book.title }}</h1>
+        <p class="book-author">by {{ book.author }}</p>
+
+        <mat-chip class="genre-chip" color="primary">{{ book.genre }}</mat-chip>
+
+        <div class="book-meta">
+          <div class="meta-item">
+            <strong>ISBN:</strong> {{ book.isbn }}
+          </div>
+          <div class="meta-item">
+            <strong>Publisher:</strong> {{ book.publisher || 'Not specified' }}
+          </div>
+          <div class="meta-item">
+            <strong>Published:</strong> {{ book.publishDate | date:'longDate' }}
+          </div>
+          <div class="meta-item">
+            <strong>Price:</strong> {{ book.price | currency }}
+          </div>
+          <div class="meta-item" [ngClass]="{'in-stock': book.quantity > 0, 'out-of-stock': book.quantity === 0}">
+            <strong>Availability:</strong> 
+            <span *ngIf="book.isUpcoming">Coming Soon</span>
+            <span *ngIf="!book.isUpcoming && book.quantity > 0">{{ book.quantity }} in stock</span>
+            <span *ngIf="!book.isUpcoming && book.quantity === 0">Out of stock</span>
+          </div>
+        </div>
+
+        <mat-divider class="divider"></mat-divider>
+
+        <div class="book-description">
+          <h2>Description</h2>
+          <p>{{ book.description }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

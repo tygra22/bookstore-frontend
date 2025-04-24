@@ -1,0 +1,199 @@
+<div class="book-manager-container">
+  <div class="book-manager-header">
+    <h1>Book Management</h1>
+    <button 
+      mat-raised-button 
+      color="primary" 
+      (click)="openBookForm()"
+      class="add-book-button"
+    >
+      <mat-icon>add</mat-icon>
+      Add New Book
+    </button>
+  </div>
+
+  <!-- Filter Section -->
+  <mat-card class="filter-card">
+    <mat-card-content>
+      <div class="filter-form">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Search books</mat-label>
+          <input 
+            matInput 
+            [(ngModel)]="searchQuery" 
+            placeholder="Search by title, author, ISBN"
+            (keyup.enter)="applyFilter()"
+          >
+          <button 
+            *ngIf="searchQuery" 
+            matSuffix 
+            mat-icon-button 
+            aria-label="Clear" 
+            (click)="searchQuery=''; applyFilter()"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Genre</mat-label>
+          <mat-select [(ngModel)]="selectedGenre" (selectionChange)="applyFilter()">
+            <mat-option [value]="''">All Genres</mat-option>
+            <mat-option *ngFor="let genre of genres" [value]="genre">{{ genre }}</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Max Price</mat-label>
+          <input 
+            matInput 
+            type="number" 
+            [(ngModel)]="maxPrice" 
+            placeholder="Enter max price"
+            min="0"
+            (keyup.enter)="applyFilter()"
+          >
+          <span matSuffix>$</span>
+        </mat-form-field>
+
+        <div class="stock-filter">
+          <mat-slide-toggle 
+            [(ngModel)]="inStockOnly"
+            (change)="applyFilter()"
+            color="primary"
+          >
+            In Stock Only
+          </mat-slide-toggle>
+        </div>
+
+        <div class="filter-actions">
+          <button 
+            mat-button 
+            color="primary" 
+            (click)="applyFilter()"
+          >
+            <mat-icon>search</mat-icon>
+            Apply Filters
+          </button>
+          <button 
+            mat-button 
+            (click)="clearFilters()"
+          >
+            <mat-icon>clear</mat-icon>
+            Clear Filters
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Loading indicator -->
+  <div *ngIf="loading" class="loading-indicator">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+
+  <!-- Error message -->
+  <div *ngIf="error && !loading" class="error-message">
+    <mat-icon color="warn">error</mat-icon>
+    <span>{{ error }}</span>
+    <button mat-button color="primary" (click)="loadBooks()">Try Again</button>
+  </div>
+
+  <!-- Books table -->
+  <div class="book-table-container" *ngIf="!loading && !error && books.length > 0">
+    <table mat-table [dataSource]="books" matSort>
+      <!-- Image Column -->
+      <ng-container matColumnDef="image">
+        <th mat-header-cell *matHeaderCellDef>Cover</th>
+        <td mat-cell *matCellDef="let book">
+          <img 
+            [src]="book.imageUrl || 'assets/images/book-placeholder.jpg'" 
+            [alt]="book.title" 
+            class="book-cover"
+          >
+        </td>
+      </ng-container>
+
+      <!-- Title Column -->
+      <ng-container matColumnDef="title">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Title</th>
+        <td mat-cell *matCellDef="let book" class="title-cell">
+          <div class="book-title">{{ book.title }}</div>
+          <div class="book-isbn">ISBN: {{ book.isbn }}</div>
+        </td>
+      </ng-container>
+
+      <!-- Author Column -->
+      <ng-container matColumnDef="author">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Author</th>
+        <td mat-cell *matCellDef="let book">{{ book.author }}</td>
+      </ng-container>
+
+      <!-- Genre Column -->
+      <ng-container matColumnDef="genre">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Genre</th>
+        <td mat-cell *matCellDef="let book">{{ book.genre }}</td>
+      </ng-container>
+
+      <!-- Price Column -->
+      <ng-container matColumnDef="price">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>Price</th>
+        <td mat-cell *matCellDef="let book">{{ book.price | currency }}</td>
+      </ng-container>
+
+      <!-- Quantity Column -->
+      <ng-container matColumnDef="quantity">
+        <th mat-header-cell *matHeaderCellDef mat-sort-header>In Stock</th>
+        <td mat-cell *matCellDef="let book" [ngClass]="{'out-of-stock': book.quantity <= 0}">
+          {{ book.quantity }}
+        </td>
+      </ng-container>
+
+      <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <td mat-cell *matCellDef="let book" class="action-cell">
+          <button 
+            mat-icon-button 
+            color="primary" 
+            matTooltip="Edit Book"
+            (click)="openBookForm(book)"
+          >
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button 
+            mat-icon-button 
+            color="warn" 
+            matTooltip="Delete Book"
+            (click)="confirmDelete(book)"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+
+    <!-- Pagination -->
+    <mat-paginator 
+      [length]="totalBooks"
+      [pageSize]="pageSize"
+      [pageSizeOptions]="[5, 10, 25, 100]"
+      (page)="onPageChange($event)"
+      showFirstLastButtons
+    ></mat-paginator>
+  </div>
+
+  <!-- Empty state -->
+  <div *ngIf="!loading && !error && books.length === 0" class="empty-state">
+    <mat-icon>menu_book</mat-icon>
+    <h2>No Books Found</h2>
+    <p>There are no books matching your current filters.</p>
+    <button mat-raised-button color="primary" (click)="clearFilters()">
+      <mat-icon>refresh</mat-icon>
+      Reset Filters
+    </button>
+  </div>
+</div>
