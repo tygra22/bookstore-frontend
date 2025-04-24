@@ -14,15 +14,13 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatSort, MatSortModule, Sort } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Router } from '@angular/router';
-import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog.component';
 import { User } from '../../../models/user.model';
-import { AuthService } from '../../../services/auth.service';
+import { SnackbarService } from '../../../services/snackbar.service';
 import { UserService } from '../../../services/user.service';
+import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-user-manager',
@@ -47,7 +45,6 @@ import { UserService } from '../../../services/user.service';
     MatDatepickerModule,
     MatNativeDateModule,
     MatChipsModule,
-    MatSnackBarModule
   ],
   templateUrl: './user-manager.component.html',
   styleUrls: ['./user-manager.component.scss']
@@ -56,25 +53,23 @@ export class UserManagerComponent implements OnInit {
   users: User[] = [];
   displayedColumns: string[] = ['name', 'email', 'address', 'phone', 'isAdmin', 'createdAt', 'actions'];
   dataSource = new MatTableDataSource<User>([]);
-  
+
   totalUsers = 0;
   pageSize = 10;
   pageSizeOptions: number[] = [5, 10, 25, 50];
   currentPage = 1;
-  
+
   loading = false;
   error = '';
   searchTerm = '';
-  
+
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
-  
+
   constructor(
     private userService: UserService,
-    private authService: AuthService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar,
-    private router: Router
+    private snackbarService: SnackbarService
   ) { }
 
   ngOnInit(): void {
@@ -89,7 +84,7 @@ export class UserManagerComponent implements OnInit {
   loadUsers(page: number = 1): void {
     this.loading = true;
     this.error = '';
-    
+
     this.userService.getUsers({
       page: page,
       limit: this.pageSize,
@@ -129,9 +124,9 @@ export class UserManagerComponent implements OnInit {
 
   toggleAdminStatus(user: User): void {
     if (!user._id) return;
-    
+
     const newStatus = !user.isAdmin;
-    
+
     this.userService.updateUserAdminStatus(user._id, newStatus).subscribe({
       next: (updatedUser) => {
         // Update the user in the dataSource
@@ -140,26 +135,25 @@ export class UserManagerComponent implements OnInit {
           this.users[index].isAdmin = newStatus;
           this.dataSource.data = [...this.users]; // Create a new array reference to trigger change detection
         }
-        
-        this.snackBar.open(
-          `${user.name} is ${newStatus ? 'now an admin' : 'no longer an admin'}`, 
-          'Close', 
+
+        this.snackbarService.success(
+          `${user.name} is ${newStatus ? 'now an admin' : 'no longer an admin'}`,
           { duration: 3000 }
         );
       },
       error: (error) => {
         console.error('Error updating user admin status:', error);
-        this.snackBar.open('Failed to update user admin status', 'Close', { duration: 3000 });
+        this.snackbarService.error('Failed to update user admin status', { duration: 3000 });
       }
     });
   }
 
   deleteUser(user: User): void {
     if (!user._id) return;
-    
+
     this.confirmDelete(user);
   }
-  
+
   confirmDelete(user: User): void {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
@@ -179,12 +173,12 @@ export class UserManagerComponent implements OnInit {
             this.users = this.users.filter(u => u._id !== user._id);
             this.dataSource.data = this.users;
             this.totalUsers--;
-            
-            this.snackBar.open(`${user.name} has been deleted`, 'Close', { duration: 3000 });
+
+            this.snackbarService.success(`${user.name} has been deleted`, { duration: 3000 });
           },
           error: (error) => {
             console.error('Error deleting user:', error);
-            this.snackBar.open('Failed to delete user', 'Close', { duration: 3000 });
+            this.snackbarService.error('Failed to delete user', { duration: 3000 });
           }
         });
       }

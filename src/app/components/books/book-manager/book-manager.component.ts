@@ -14,13 +14,13 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTable, MatTableModule } from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
 
 import { Book } from '../../../models/book.model';
 import { BookResponse, BookSearchParams, BookService } from '../../../services/book.service';
+import { SnackbarService } from '../../../services/snackbar.service';
 import { ConfirmDialogComponent } from '../../shared/confirm-dialog/confirm-dialog.component';
 import { BookFormDialogComponent } from './book-form-dialog/book-form-dialog.component';
 
@@ -41,7 +41,6 @@ import { BookFormDialogComponent } from './book-form-dialog/book-form-dialog.com
     MatSelectModule,
     MatCardModule,
     MatDialogModule,
-    MatSnackBarModule,
     MatProgressSpinnerModule,
     MatDatepickerModule,
     MatNativeDateModule,
@@ -77,7 +76,7 @@ export class BookManagerComponent implements OnInit {
   constructor(
     private bookService: BookService,
     private dialog: MatDialog,
-    private snackBar: MatSnackBar,
+    private snackbarService: SnackbarService,
   ) { }
 
   ngOnInit(): void {
@@ -107,7 +106,7 @@ export class BookManagerComponent implements OnInit {
         error: (error) => {
           this.error = 'Failed to load books. Please try again later.';
           this.loading = false;
-          this.snackBar.open('Error loading books', 'Close', { duration: 3000 });
+          this.snackbarService.error('Error loading books', { duration: 3000 });
         }
       });
   }
@@ -164,12 +163,12 @@ export class BookManagerComponent implements OnInit {
     this.loading = true;
     this.bookService.createBook(bookData).subscribe({
       next: (book) => {
-        this.snackBar.open(`Book "${book.title}" created successfully`, 'Close', { duration: 3000 });
+        this.snackbarService.success(`Book "${book.title}" created successfully`, { duration: 3000 });
         this.loadBooks();
       },
       error: (error) => {
         this.loading = false;
-        this.snackBar.open('Error creating book', 'Close', { duration: 3000 });
+        this.snackbarService.error('Error creating book', { duration: 3000 });
       }
     });
   }
@@ -182,12 +181,12 @@ export class BookManagerComponent implements OnInit {
 
     this.bookService.updateBook(id, bookWithoutId).subscribe({
       next: (updatedBook) => {
-        this.snackBar.open(`Book "${updatedBook.title}" updated successfully`, 'Close', { duration: 3000 });
+        this.snackbarService.success(`Book "${updatedBook.title}" updated successfully`, { duration: 3000 });
         this.loadBooks();
       },
       error: (error) => {
         this.loading = false;
-        this.snackBar.open('Error updating book', 'Close', { duration: 3000 });
+        this.snackbarService.error('Error updating book', { duration: 3000 });
       }
     });
   }
@@ -214,12 +213,12 @@ export class BookManagerComponent implements OnInit {
     this.loading = true;
     this.bookService.deleteBook(book._id).subscribe({
       next: () => {
-        this.snackBar.open(`Book "${book.title}" deleted successfully`, 'Close', { duration: 3000 });
+        this.snackbarService.success(`Book "${book.title}" deleted successfully`, { duration: 3000 });
         this.loadBooks();
       },
       error: (error) => {
         this.loading = false;
-        this.snackBar.open('Error deleting book', 'Close', { duration: 3000 });
+        this.snackbarService.error('Error deleting book', { duration: 3000 });
       }
     });
   }

@@ -9,7 +9,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatStepperModule } from '@angular/material/stepper';
 import { Router, RouterModule } from '@angular/router';
 
@@ -18,6 +17,7 @@ import { User } from '../../models/user.model';
 import { AuthService } from '../../services/auth.service';
 import { CartService } from '../../services/cart.service';
 import { OrderService } from '../../services/order.service';
+import { SnackbarService } from '../../services/snackbar.service';
 
 @Component({
   selector: 'app-checkout',
@@ -34,9 +34,8 @@ import { OrderService } from '../../services/order.service';
     MatStepperModule,
     MatDividerModule,
     MatIconModule,
-    MatSnackBarModule,
     MatProgressSpinnerModule,
-    RouterModule
+    RouterModule,
   ],
   templateUrl: './checkout.component.html',
   styleUrls: ['./checkout.component.scss']
@@ -74,7 +73,7 @@ export class CheckoutComponent implements OnInit {
     private authService: AuthService,
     private cartService: CartService,
     private orderService: OrderService,
-    private snackBar: MatSnackBar,
+    private snackbarService: SnackbarService,
     private router: Router
   ) { }
 
@@ -116,7 +115,7 @@ export class CheckoutComponent implements OnInit {
         if (user) {
           // Use address parsing for backward compatibility with existing addresses
           const addressParts = this.parseAddress(user.address || '');
-          
+
           this.shippingForm.patchValue({
             name: user.name,
             addressLine1: addressParts.addressLine1,
@@ -132,7 +131,7 @@ export class CheckoutComponent implements OnInit {
         this.loading = false;
       },
       error: () => {
-        this.snackBar.open('Failed to load user profile', 'Close', { duration: 3000 });
+        this.snackbarService.error('Failed to load user profile', { duration: 3000 });
         this.loading = false;
       }
     });
@@ -166,7 +165,7 @@ export class CheckoutComponent implements OnInit {
 
       // Redirect to cart if empty
       if (cart.items.length === 0) {
-        this.snackBar.open('Your cart is empty', 'Close', { duration: 3000 });
+        this.snackbarService.error('Your cart is empty', { duration: 3000 });
         this.router.navigate(['/cart']);
       }
     });
@@ -265,13 +264,13 @@ export class CheckoutComponent implements OnInit {
         this.submitting = false;
 
         // Show success message and navigate to order history
-        this.snackBar.open('Order placed successfully! Your order is complete.', 'Close', { duration: 5000 });
+        this.snackbarService.success('Order placed successfully! Your order is complete.', { duration: 5000 });
         this.router.navigate(['/profile'], { queryParams: { tab: 'orders' } });
       },
       error: (error) => {
         console.error('Error creating order:', error);
         this.submitting = false;
-        this.snackBar.open('Failed to place order. Please try again.', 'Close', { duration: 3000 });
+        this.snackbarService.error('Failed to place order. Please try again.', { duration: 3000 });
       }
     });
   }

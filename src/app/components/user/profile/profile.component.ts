@@ -1,29 +1,29 @@
-import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormGroup, FormBuilder, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
+import { Component, OnInit } from '@angular/core';
+import { AbstractControl, FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
+import { MatBadgeModule } from '@angular/material/badge';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatTabsModule } from '@angular/material/tabs';
-import { RouterModule, ActivatedRoute } from '@angular/router';
-import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatSelectModule } from '@angular/material/select';
-import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatBadgeModule } from '@angular/material/badge';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
+import { MatSortModule } from '@angular/material/sort';
+import { MatTableModule } from '@angular/material/table';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 
-import { User } from '../../../models/user.model';
 import { Order, OrderSearchParams } from '../../../models/order.model';
+import { User } from '../../../models/user.model';
 import { AuthService } from '../../../services/auth.service';
 import { OrderService } from '../../../services/order.service';
+import { SnackbarService } from '../../../services/snackbar.service';
 
 @Component({
   selector: 'app-profile',
@@ -38,7 +38,6 @@ import { OrderService } from '../../../services/order.service';
     MatInputModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatSnackBarModule,
     MatDividerModule,
     MatTabsModule,
     RouterModule,
@@ -63,7 +62,7 @@ export class ProfileComponent implements OnInit {
   passwordHidden = true;
   newPasswordHidden = true;
   confirmPasswordHidden = true;
-  
+
   // Order history properties
   orders: Order[] = [];
   ordersLoading = false;
@@ -74,11 +73,11 @@ export class ProfileComponent implements OnInit {
     pages: 0
   };
   pageSize = 5;
-  
+
   // Table display properties
   displayedColumns: string[] = ['orderId', 'date', 'total', 'status', 'actions'];
   selectedOrder: Order | null = null;
-  
+
   // Tab control
   selectedTabIndex = 0; // Default to profile information tab
 
@@ -86,7 +85,7 @@ export class ProfileComponent implements OnInit {
     private fb: FormBuilder,
     private authService: AuthService,
     private orderService: OrderService,
-    private snackBar: MatSnackBar,
+    private snackbarService: SnackbarService,
     private route: ActivatedRoute
   ) { }
 
@@ -94,7 +93,7 @@ export class ProfileComponent implements OnInit {
     this.initForms();
     this.loadUserProfile();
     this.loadOrders();
-    
+
     // Check for tab parameter in the URL
     this.route.queryParams.subscribe(params => {
       if (params['tab'] === 'orders') {
@@ -141,7 +140,7 @@ export class ProfileComponent implements OnInit {
       error: (error) => {
         this.errorMessage = 'Failed to load user profile. Please try again.';
         this.loading = false;
-        this.snackBar.open(this.errorMessage, 'Close', { duration: 3000 });
+        this.snackbarService.error(this.errorMessage, { duration: 3000 });
       }
     });
   }
@@ -169,12 +168,12 @@ export class ProfileComponent implements OnInit {
       next: (updatedUser) => {
         this.user = updatedUser;
         this.loading = false;
-        this.snackBar.open('Profile updated successfully', 'Close', { duration: 3000 });
+        this.snackbarService.success('Profile updated successfully', { duration: 3000 });
       },
       error: (error) => {
         this.loading = false;
         this.errorMessage = error.error?.message || 'Failed to update profile. Please try again.';
-        this.snackBar.open(this.errorMessage, 'Close', { duration: 3000 });
+        this.snackbarService.error(this.errorMessage, { duration: 3000 });
       }
     });
   }
@@ -195,12 +194,12 @@ export class ProfileComponent implements OnInit {
       next: (_) => {
         this.loading = false;
         this.passwordForm.reset();
-        this.snackBar.open('Password updated successfully', 'Close', { duration: 3000 });
+        this.snackbarService.success('Password updated successfully', { duration: 3000 });
       },
       error: (error) => {
         this.loading = false;
         this.errorMessage = error.error?.message || 'Failed to update password. Please try again.';
-        this.snackBar.open(this.errorMessage, 'Close', { duration: 3000 });
+        this.snackbarService.error(this.errorMessage, { duration: 3000 });
       }
     });
   }
@@ -208,7 +207,7 @@ export class ProfileComponent implements OnInit {
   // Helper methods for form field validation
   getErrorMessage(controlName: string, form: FormGroup = this.profileForm): string {
     const control = form.get(controlName);
-    
+
     if (!control || !control.errors) {
       return '';
     }
@@ -237,7 +236,7 @@ export class ProfileComponent implements OnInit {
 
   getPasswordErrorMessage(controlName: string): string {
     const control = this.passwordForm.get(controlName);
-    
+
     if (!control || !control.errors) {
       return '';
     }
@@ -254,10 +253,10 @@ export class ProfileComponent implements OnInit {
   }
 
   hasPasswordMismatch(): boolean {
-    return this.passwordForm.hasError('passwordMismatch') && 
-           this.passwordForm.get('confirmPassword')?.touched === true;
+    return this.passwordForm.hasError('passwordMismatch') &&
+      this.passwordForm.get('confirmPassword')?.touched === true;
   }
-  
+
   // Order history methods
   loadOrders(page: number = 1): void {
     this.ordersLoading = true;
@@ -267,7 +266,7 @@ export class ProfileComponent implements OnInit {
       sort: 'createdAt',
       order: 'desc'
     };
-    
+
     this.orderService.getMyOrders(params).subscribe({
       next: (response) => {
         this.orders = response.orders;
@@ -280,15 +279,15 @@ export class ProfileComponent implements OnInit {
       }
     });
   }
-  
+
   onPageChange(event: PageEvent): void {
     const page = event.pageIndex + 1;
     this.pageSize = event.pageSize;
     this.loadOrders(page);
   }
-  
 
-  
+
+
   getOrderStatusText(order: Order): string {
     // All orders are now completed immediately for class project simplicity
     return 'Completed';
@@ -298,15 +297,15 @@ export class ProfileComponent implements OnInit {
     // All orders are now completed/delivered immediately for class project simplicity
     return 'status-delivered';
   }
-  
+
   viewOrderDetails(order: Order): void {
     this.selectedOrder = order;
   }
-  
+
   closeOrderDetails(): void {
     this.selectedOrder = null;
   }
-  
+
   formatDate(date: Date | string): string {
     return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -314,14 +313,14 @@ export class ProfileComponent implements OnInit {
       day: 'numeric'
     });
   }
-  
+
   /**
    * Check if a book reference is an object (populated) and not just an ID
    */
   isBookObject(book: any): boolean {
     return book && typeof book === 'object' && !Array.isArray(book);
   }
-  
+
   /**
    * Safely get a property from a book object
    */

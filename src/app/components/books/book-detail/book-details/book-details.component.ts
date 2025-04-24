@@ -6,8 +6,9 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
+import { SnackbarService } from '../../../../services/snackbar.service';
 
 import { Book } from '../../../../models/book.model';
 import { BookService } from '../../../../services/book.service';
@@ -39,7 +40,7 @@ export class BookDetailsComponent implements OnInit {
     private router: Router,
     private bookService: BookService,
     private cartService: CartService,
-    private snackBar: MatSnackBar
+    private snackbarService: SnackbarService
   ) { }
 
   ngOnInit(): void {
@@ -79,13 +80,7 @@ export class BookDetailsComponent implements OnInit {
     if (!this.book) return;
 
     this.cartService.addToCart(this.book);
-
-    this.snackBar.open(`Added ${this.book.title} to cart`, 'View Cart', {
-      duration: 3000,
-      horizontalPosition: 'end',
-      verticalPosition: 'top'
-    }).onAction().subscribe(() => {
-      this.router.navigate(['/cart']);
+    this.snackbarService.cart(`Added ${this.book.title} to cart`).subscribe(() => {
     });
   }
 }

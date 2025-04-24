@@ -1,25 +1,37 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { AfterViewInit, Component, OnInit } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTableModule } from '@angular/material/table';
 import { RouterModule } from '@angular/router';
 
-import { OrderService } from '../../../services/order.service';
-import { OrderStats } from '../../../models/order.model';
-import { BookService } from '../../../services/book.service';
 import { Book, BookSearchParams } from '../../../models/book.model';
-import { UserService } from '../../../services/user.service';
+import { OrderStats } from '../../../models/order.model';
 import { ApiService } from '../../../services/api.service';
+import { BookService } from '../../../services/book.service';
+import { OrderService } from '../../../services/order.service';
+import { UserService } from '../../../services/user.service';
 
-// Import Chart.js directly using script tags in index.html
-declare var Chart: any;
+// Import Chart.js properly with TypeScript support
+import { BarController, BarElement, CategoryScale, Chart, ChartConfiguration, Legend, LinearScale, LineController, LineElement, PointElement, Tooltip } from 'chart.js';
+
+// Register the required Chart.js components
+Chart.register(
+  LinearScale,
+  CategoryScale,
+  BarController,
+  BarElement,
+  LineController,
+  LineElement,
+  PointElement,
+  Legend,
+  Tooltip
+);
 
 interface TopSellingBook {
   _id: string;
@@ -47,7 +59,6 @@ interface UserStats {
     MatTableModule,
     MatPaginatorModule,
     MatProgressSpinnerModule,
-    MatSnackBarModule,
     RouterModule
   ],
   templateUrl: './admin-dashboard.component.html',
@@ -58,41 +69,41 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
   orderStatsLoading = true;
   bookStatsLoading = true;
   userStatsLoading = true;
-  
+
   // Stats data
   orderStats: OrderStats | null = null;
   lowStockBooks: Book[] = [];
   topSellingBooks: TopSellingBook[] = [];
   userStats: UserStats = { totalUsers: 0, newUsersThisMonth: 0 };
-  
+
   // Charts
-  revenueChart: any;
-  salesChart: any;
-  
+  revenueChart: Chart | null = null;
+  salesChart: Chart | null = null;
+
   // Chart data
   monthlyRevenueData: number[] = [];
   monthlySalesData: number[] = [];
   monthLabels: string[] = [];
-  
+
   // Properties to track inventory alerts
   lowStockCount = 0;
   criticalStockCount = 0;
   outOfStockCount = 0;
-  
+
   constructor(
     private orderService: OrderService,
     private bookService: BookService,
     private userService: UserService,
     private http: HttpClient,
     private apiService: ApiService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadOrderStats();
     this.loadBookStats();
     this.loadUserStats();
   }
-  
+
   ngAfterViewInit(): void {
     // Charts will be initialized after data is loaded
   }
@@ -100,12 +111,12 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
   // Load all dashboard statistics from the new admin stats endpoint
   loadOrderStats(): void {
     this.orderStatsLoading = true;
-    
+
     // Use the new comprehensive admin stats endpoint
     this.http.get<any>(`${this.apiService.getUrl('admin/stats')}`).subscribe({
       next: (dashboardStats) => {
         console.log('Dashboard stats loaded:', dashboardStats);
-        
+
         // Set order stats
         this.orderStats = {
           totalOrders: dashboardStats.orders.total,
@@ -118,29 +129,29 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
           // Save monthly trend for charts
           monthlyTrend: dashboardStats.orders.monthlyTrend
         };
-        
+
         // Set the book stats for low stock items
         this.lowStockCount = dashboardStats.books.lowStock;
-        
+
         // Set user stats
         this.userStats = {
           totalUsers: dashboardStats.users.total,
           newUsersThisMonth: dashboardStats.users.newThisMonth
         };
-        
+
         this.processChartData();
         this.orderStatsLoading = false;
       },
       error: (err) => {
         console.error('Error loading admin stats:', err);
         this.orderStatsLoading = false;
-        
+
         // Fallback to original method if new endpoint fails
         this.loadOrderStatsFallback();
       }
     });
   }
-  
+
   // Fallback to original method if new endpoint fails
   loadOrderStatsFallback(): void {
     console.log('Using fallback method for order stats');
@@ -161,7 +172,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
         } else {
           this.orderStats = stats;
         }
-        
+
         this.processChartData();
         this.orderStatsLoading = false;
       },
@@ -171,35 +182,35 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       }
     });
   }
-  
+
   // Load book statistics including low stock books and top sellers
   loadBookStats(): void {
     this.bookStatsLoading = true;
-    
+
     // Use the dedicated low-stock endpoint
     this.http.get<any>(`${this.apiService.getUrl('admin/low-stock')}`).subscribe({
       next: (response) => {
         console.log('Low stock books loaded:', response);
         this.lowStockBooks = response.books;
-        
+
         // Update stock count metrics
         this.lowStockCount = response.counts.lowStock;
         this.criticalStockCount = response.counts.criticalStock;
         this.outOfStockCount = response.counts.outOfStock;
-        
+
         this.bookStatsLoading = false;
       },
       error: (err) => {
         console.error('Error loading low stock books:', err);
         this.bookStatsLoading = false;
-        
+
         // Fallback to original method if endpoint fails
         this.loadLowStockBooksFallback();
       }
     });
-    
 
-  
+
+
     // Get top selling books from new API endpoint
     this.http.get<any[]>(`${this.apiService.getUrl('admin/top-books')}`).subscribe({
       next: (topBooks) => {
@@ -213,7 +224,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       }
     });
   }
-  
+
   // Fallback method for loading low stock books
   loadLowStockBooksFallback(): void {
     console.log('Using fallback method for low stock books');
@@ -221,12 +232,12 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       next: (response) => {
         // Filter books with low stock (less than 10 units)
         this.lowStockBooks = response.books.filter(book => book.quantity < 10);
-        
+
         // Manually calculate counts
         this.lowStockCount = this.lowStockBooks.length;
         this.criticalStockCount = this.lowStockBooks.filter(book => book.quantity < 5).length;
         this.outOfStockCount = this.lowStockBooks.filter(book => book.quantity === 0).length;
-        
+
         console.log('Fallback low stock books loaded:', this.lowStockBooks);
       },
       error: (err) => {
@@ -238,29 +249,29 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       }
     });
   }
-  
+
   // Get detailed user statistics
   loadUserStats(): void {
     this.userStatsLoading = true;
-    
+
     // Use the dedicated user stats endpoint for more detailed information
     this.http.get<any>(`${this.apiService.getUrl('admin/user-stats')}`).subscribe({
       next: (stats) => {
         console.log('Detailed user stats loaded:', stats);
-        
+
         this.userStats = {
           totalUsers: stats.totalUsers,
           newUsersThisMonth: stats.usersThisMonth
         };
-        
+
         // Could add more detailed user stats if needed for the dashboard
-        
+
         this.userStatsLoading = false;
       },
       error: (err) => {
         console.error('Error loading detailed user stats:', err);
         this.userStatsLoading = false;
-        
+
         // Fallback to simpler method if detailed stats fail
         this.userService.getUsers({ limit: 1 }).subscribe({
           next: (response) => {
@@ -280,7 +291,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       }
     });
   }
-  
+
   // Process chart data from order stats
   processChartData(): void {
     if (this.orderStats?.monthlyTrend) {
@@ -288,7 +299,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       this.monthLabels = [];
       this.monthlyRevenueData = [];
       this.monthlySalesData = [];
-      
+
       // Sort by date
       const sortedTrend = [...this.orderStats.monthlyTrend].sort((a, b) => {
         if (a._id.year !== b._id.year) {
@@ -296,21 +307,21 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
         }
         return a._id.month - b._id.month;
       });
-      
+
       // Extract last 6 months data (or less if not enough data)
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       const trend = sortedTrend.slice(-6); // Last 6 months
-      
+
       trend.forEach(month => {
         this.monthLabels.push(`${months[month._id.month - 1]} ${month._id.year}`);
         this.monthlyRevenueData.push(month.revenue);
         this.monthlySalesData.push(month.count);
       });
-      
+
       this.initCharts();
     }
   }
-  
+
   // Initialize charts once data is loaded
   initCharts(): void {
     setTimeout(() => {
@@ -318,17 +329,17 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
       this.createSalesChart();
     }, 0);
   }
-  
+
   // Create revenue chart
   createRevenueChart(): void {
     const ctx = document.getElementById('revenueChart') as HTMLCanvasElement;
     if (!ctx) return;
-    
+
     if (this.revenueChart) {
       this.revenueChart.destroy();
     }
-    
-    this.revenueChart = new Chart(ctx, {
+
+    const config: ChartConfiguration = {
       type: 'line',
       data: {
         labels: this.monthLabels,
@@ -348,7 +359,7 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
           y: {
             beginAtZero: true,
             ticks: {
-              callback: function(value: any) {
+              callback: function (value: any) {
                 return '$' + value;
               }
             }
@@ -361,26 +372,28 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
           },
           tooltip: {
             callbacks: {
-              label: function(context: any) {
+              label: function (context: any) {
                 return '$' + context.parsed.y.toFixed(2);
               }
             }
           }
         }
       }
-    });
+    };
+
+    this.revenueChart = new Chart(ctx, config);
   }
-  
+
   // Create sales count chart
   createSalesChart(): void {
     const ctx = document.getElementById('salesChart') as HTMLCanvasElement;
     if (!ctx) return;
-    
+
     if (this.salesChart) {
       this.salesChart.destroy();
     }
-    
-    this.salesChart = new Chart(ctx, {
+
+    const config: ChartConfiguration = {
       type: 'bar',
       data: {
         labels: this.monthLabels,
@@ -404,13 +417,15 @@ export class AdminDashboardComponent implements OnInit, AfterViewInit {
           }
         }
       }
-    });
+    };
+
+    this.salesChart = new Chart(ctx, config);
   }
-  
+
   // Format currency
   formatCurrency(amount: number): string {
     return `$${amount.toFixed(2)}`;
   }
-  
+
 
 }

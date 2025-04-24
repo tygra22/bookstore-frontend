@@ -1,18 +1,18 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { debounceTime, distinctUntilChanged, Subject } from 'rxjs';
+import { Router, RouterLink } from '@angular/router';
+import { debounceTime, Subject } from 'rxjs';
+import { SnackbarService } from '../../../services/snackbar.service';
 
 import { Book } from '../../../models/book.model';
 import { BookResponse, BookSearchParams, BookService } from '../../../services/book.service';
@@ -34,7 +34,6 @@ import { CartService } from '../../../services/cart.service';
     MatPaginatorModule,
     FormsModule,
     MatCheckboxModule,
-    MatSnackBarModule
   ],
   templateUrl: './book-list.component.html',
   styleUrls: ['./book-list.component.scss']
@@ -67,7 +66,7 @@ export class BookListComponent implements OnInit {
     private bookService: BookService,
     private cartService: CartService,
     private router: Router,
-    private snackBar: MatSnackBar
+    private snackbarService: SnackbarService
   ) {
     // Setup search debounce
     this.searchDebounce.pipe(
@@ -77,7 +76,7 @@ export class BookListComponent implements OnInit {
       this.currentPage = 1; // Reset to first page on new search
       this.loadBooks();
     });
-    
+
     // Setup price debounce
     this.priceDebounce.pipe(
       debounceTime(1000) // 1 second debounce
@@ -190,21 +189,18 @@ export class BookListComponent implements OnInit {
     this.currentPage = 1;
     this.loadBooks();
   }
-  
+
   /**
    * Add a book to the cart
    */
   addToCart(book: Book): void {
     if (book.quantity === 0) return; // Don't add out of stock books
-    
+
     this.cartService.addToCart(book);
-    
-    this.snackBar.open(`Added ${book.title} to cart`, 'View Cart', {
-      duration: 3000,
-      horizontalPosition: 'end',
-      verticalPosition: 'top'
-    }).onAction().subscribe(() => {
-      this.router.navigate(['/cart']);
+
+    // Use our custom SnackbarService with cart-specific styling
+    this.snackbarService.cart(`Added ${book.title} to cart`).subscribe(() => {
+      // This will automatically navigate to the cart page thanks to the service
     });
   }
 }

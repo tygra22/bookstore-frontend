@@ -3,11 +3,10 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { Order } from '../../../models/order.model';
@@ -29,7 +28,6 @@ interface DialogData {
     MatDividerModule,
     MatChipsModule,
     MatProgressSpinnerModule,
-    MatSnackBarModule,
     MatTooltipModule
   ],
   templateUrl: './admin-order-detail.component.html',
@@ -43,10 +41,9 @@ export class AdminOrderDetailComponent implements OnInit {
 
   constructor(
     private orderService: OrderService,
-    private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<AdminOrderDetailComponent>,
     @Inject(MAT_DIALOG_DATA) public data: DialogData
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadOrderDetails();
@@ -56,7 +53,7 @@ export class AdminOrderDetailComponent implements OnInit {
   loadOrderDetails(): void {
     this.loading = true;
     this.error = '';
-    
+
     this.orderService.getOrderById(this.data.orderId).subscribe({
       next: (order) => {
         this.order = order;
@@ -78,10 +75,10 @@ export class AdminOrderDetailComponent implements OnInit {
   // Format date for display
   formatDate(dateString: string | Date | undefined): string {
     if (!dateString) return 'N/A';
-    
-    const options: Intl.DateTimeFormatOptions = { 
-      year: 'numeric', 
-      month: 'short', 
+
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
@@ -113,13 +110,13 @@ export class AdminOrderDetailComponent implements OnInit {
     if (typeof user === 'string') return 'User: ' + user;
     return user.name || 'N/A';
   }
-  
+
   getUserEmail(user: string | any): string {
     if (!user) return 'N/A';
     if (typeof user === 'string') return 'ID: ' + user;
     return user.email || 'N/A';
   }
-  
+
   // Helper methods to access nested book properties safely
   getBookTitle(item: any): string {
     if (!item.book) return 'Unknown Book';

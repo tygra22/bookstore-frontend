@@ -4,8 +4,9 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatNativeDateModule } from '@angular/material/core';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -14,13 +15,11 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatNativeDateModule } from '@angular/material/core';
 
-import { Order, OrderSearchParams, OrderResponse, OrderStats } from '../../../models/order.model';
+import { Order, OrderResponse, OrderSearchParams, OrderStats } from '../../../models/order.model';
 import { OrderService } from '../../../services/order.service';
 import { AdminOrderDetailComponent } from '../admin-order-detail/admin-order-detail.component';
 
@@ -41,7 +40,6 @@ import { AdminOrderDetailComponent } from '../admin-order-detail/admin-order-det
     MatSelectModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatSnackBarModule,
     MatChipsModule,
     MatDividerModule,
     MatDialogModule,
@@ -58,16 +56,16 @@ export class AdminOrdersComponent implements OnInit {
   orders: Order[] = [];
   loading = false;
   error = '';
-  
+
   // Table display properties
   displayedColumns: string[] = ['orderId', 'date', 'customer', 'total', 'status', 'actions'];
-  
+
   // Search and filtering
   searchTerm = '';
   statusFilter: '' | 'completed' = '';
   startDate: Date | null = null;
   endDate: Date | null = null;
-  
+
   // Pagination
   pagination = {
     total: 0,
@@ -75,20 +73,19 @@ export class AdminOrdersComponent implements OnInit {
     pages: 0
   };
   pageSize = 10;
-  
+
   // Sorting
   sortField = 'createdAt';
   sortDirection: 'asc' | 'desc' = 'desc';
-  
+
   // Order statistics
   orderStats: OrderStats | null = null;
   statsLoading = false;
 
   constructor(
     private orderService: OrderService,
-    private snackBar: MatSnackBar,
     private dialog: MatDialog
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadOrders();
@@ -99,33 +96,33 @@ export class AdminOrdersComponent implements OnInit {
   loadOrders(): void {
     this.loading = true;
     this.error = '';
-    
+
     const params: OrderSearchParams = {
       page: this.pagination.page,
       limit: this.pageSize,
       sort: this.sortField,
       order: this.sortDirection
     };
-    
+
     // Add filters if set
     if (this.searchTerm) {
       params.search = this.searchTerm;
     }
-    
+
     if (this.statusFilter) {
       params.status = this.statusFilter;
     }
-    
+
     if (this.startDate) {
       params.startDate = this.startDate.toISOString();
     }
-    
+
     if (this.endDate) {
       params.endDate = this.endDate.toISOString();
     }
-    
+
     console.log('Fetching orders with params:', params);
-    
+
     this.orderService.getOrders(params).subscribe({
       next: (response: OrderResponse) => {
         console.log('Orders API response:', response);
@@ -166,7 +163,7 @@ export class AdminOrdersComponent implements OnInit {
           // Fallback in case the structure is already flat
           this.orderStats = stats;
         }
-        
+
         console.log('Order stats loaded:', this.orderStats);
         this.statsLoading = false;
       },
@@ -209,9 +206,9 @@ export class AdminOrdersComponent implements OnInit {
 
   // Format date for display
   formatDate(dateString: string): string {
-    const options: Intl.DateTimeFormatOptions = { 
-      year: 'numeric', 
-      month: 'short', 
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'short',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
