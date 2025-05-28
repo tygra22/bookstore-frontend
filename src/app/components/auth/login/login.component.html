@@ -3,42 +3,58 @@
     <mat-card-header>
       <mat-card-title>Login</mat-card-title>
     </mat-card-header>
-    
+
     <mat-card-content>
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Email</mat-label>
-          <input matInput type="email" formControlName="email" placeholder="Enter your email">
+          <input
+            matInput
+            type="email"
+            formControlName="email"
+            placeholder="Enter your email"
+          />
           @if (submitted && f['email'].errors?.['required']) {
-            <mat-error>Email is required</mat-error>
-          }
-          @if (submitted && f['email'].errors?.['email']) {
-            <mat-error>Please enter a valid email address</mat-error>
+          <mat-error>Email is required</mat-error>
+          } @if (submitted && f['email'].errors?.['email']) {
+          <mat-error>Please enter a valid email address</mat-error>
           }
         </mat-form-field>
-        
+
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Password</mat-label>
-          <input matInput type="password" formControlName="password" placeholder="Enter your password">
+          <input
+            matInput
+            type="password"
+            formControlName="password"
+            placeholder="Enter your password"
+          />
           @if (submitted && f['password'].errors?.['required']) {
-            <mat-error>Password is required</mat-error>
+          <mat-error>Password is required</mat-error>
           }
         </mat-form-field>
-        
+
         @if (error) {
-          <div class="error-message">
-            {{ error }}
-          </div>
+        <div class="error-message">
+          {{ error }}
+        </div>
         }
-        
+
         <div class="form-actions">
-          <button mat-raised-button color="primary" type="submit" [disabled]="loading" class="full-width">
+          <button
+            mat-raised-button
+            color="primary"
+            type="submit"
+            [disabled]="loading"
+            class="full-width"
+          >
             @if (loading) {
-              <mat-spinner diameter="20" class="spinner"></mat-spinner>
-            }
-            Login
+            <mat-spinner diameter="20" class="spinner"></mat-spinner>
+            } Login
           </button>
-          <a routerLink="/register" class="register-link">Don't have an account? Register</a>
+          <a routerLink="/register" class="register-link"
+            >Don't have an account? Register</a
+          >
         </div>
       </form>
     </mat-card-content>

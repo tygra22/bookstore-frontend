@@ -20,6 +20,16 @@
   margin-top: 64px; /* Height of the toolbar */
   padding: 20px;
   min-height: calc(100vh - 64px);
+  overflow: hidden;
+  background-image: url("../assets/big_t.jpg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  height: 100vh;
+  width: 100vw;
+  position: fixed;
+  top: 0;
+  left: 0;
 }
 
 .active-link {
